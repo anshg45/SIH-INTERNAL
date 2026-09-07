@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   AIIA CTMS DESIGN TOKENS
+   "Indian government healthcare + premium clinical research + subtle Ayurveda"
+   Gold/copper are ACCENTS. Sage is the secondary healthcare/nature accent.
+   Everything else (surfaces, text, borders) stays neutral and clinical.
+   ========================================================================== */
+@theme {
+  --font-sans: 'Inter', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Walnut — primary institutional brown */
+  --color-walnut-50: #F5F1EC;
+  --color-walnut-100: #EAE1D7;
+  --color-walnut-200: #D6C4B2;
+  --color-walnut-300: #BFA48A;
+  --color-walnut-400: #9C7A5C;
+  --color-walnut-500: #7A5B41;
+  --color-walnut-600: #5A3E32;
+  --color-walnut-700: #4A3129;
+  --color-walnut-800: #3A2620;
+  --color-walnut-900: #2E1E19;
+
+  /* Copper — secondary accent */
+  --color-copper-50: #FBF3EC;
+  --color-copper-100: #F3E1D0;
+  --color-copper-200: #E4C2A3;
+  --color-copper-300: #D2A57C;
+  --color-copper-400: #BD8760;
+  --color-copper-500: #A56A43;
+  --color-copper-600: #8F5736;
+  --color-copper-700: #74452B;
+  --color-copper-800: #5C3722;
+  --color-copper-900: #472A1A;
+
+  /* Gold — muted antique accent, used sparingly (active states, emphasis) */
+  --color-gold-50: #FBF6EC;
+  --color-gold-100: #F3E7CB;
+  --color-gold-200: #E4CE9C;
+  --color-gold-300: #D3B678;
+  --color-gold-400: #C0A066;
+  --color-gold-500: #B08D57;
+  --color-gold-600: #97753F;
+  --color-gold-700: #7A5E33;
+  --color-gold-800: #5F4A28;
+  --color-gold-900: #4A3A20;
+
+  /* Sage — healthcare / nature secondary accent, doubles as "success" */
+  --color-sage-50: #F1F4F1;
+  --color-sage-100: #DEE6DE;
+  --color-sage-200: #BECCBE;
+  --color-sage-300: #9BB09C;
+  --color-sage-400: #789480;
+  --color-sage-500: #526B57;
+  --color-sage-600: #435A48;
+  --color-sage-700: #37493B;
+  --color-sage-800: #2C3A2F;
+  --color-sage-900: #232E25;
+
+  /* Amber — warning status only (distinct from the gold accent) */
+  --color-amber-50: #FBF3E6;
+  --color-amber-100: #F3DFB8;
+  --color-amber-200: #E5C285;
+  --color-amber-300: #D5A55A;
+  --color-amber-400: #C48F3F;
+  --color-amber-500: #AD7A33;
+  --color-amber-600: #8F6529;
+  --color-amber-700: #735120;
+  --color-amber-800: #593F19;
+  --color-amber-900: #443014;
+
+  /* Crimson — critical status only, deliberately desaturated */
+  --color-crimson-50: #FBEEEC;
+  --color-crimson-100: #F3D2CC;
+  --color-crimson-200: #E3A79B;
+  --color-crimson-300: #CE7B6A;
+  --color-crimson-400: #B65A45;
+  --color-crimson-500: #9C4530;
+  --color-crimson-600: #833626;
+  --color-crimson-700: #6A2B1E;
+  --color-crimson-800: #532218;
+  --color-crimson-900: #3F1A12;
+
+  /* Ivory — background & surfaces */
+  --color-ivory-50: #FFFDF9;
+  --color-ivory-100: #F7F4EE;
+  --color-ivory-200: #F0EBE1;
+  --color-ivory-300: #E6DFD1;
+
+  /* Stone — borders & neutral chrome */
+  --color-stone-100: #F3EFE8;
+  --color-stone-200: #DDD5CA;
+  --color-stone-300: #C9BFAF;
+  --color-stone-400: #ABA08D;
+
+  /* Ink — text */
+  --color-ink-400: #948A80;
+  --color-ink-600: #6F665F;
+  --color-ink-700: #524B44;
+  --color-ink-900: #2E2926;
+
+  --shadow-card: 0 1px 2px rgba(46, 41, 38, 0.04), 0 1px 1px rgba(46, 41, 38, 0.03);
+  --shadow-card-hover: 0 6px 20px -6px rgba(46, 41, 38, 0.14), 0 2px 6px -2px rgba(46, 41, 38, 0.08);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-ivory-100);
+    color: var(--color-ink-900);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-ivory-200);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-stone-300);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-walnut-300);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-copper-500);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-gold-200);
+    color: var(--color-walnut-900);
+  }
+}
+
+/* ==========================================================================
+   RESTRAINED INSTITUTIONAL MOTION
+   Every animation communicates state, hierarchy or feedback — never decoration.
+   ========================================================================== */
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Quiet "live" status dot — a single slow breathing pulse, not a strobe */
+@keyframes status-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.animate-status-breathe {
+  animation: status-breathe 2.4s ease-in-out infinite;
+}
+
+/* Skeleton loading — muted stone tones, no bright specular sweep */
+@keyframes skeleton-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-stone-100) 25%, var(--color-ivory-200) 50%, var(--color-stone-100) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+/* Card entrance stagger utility */
+.card-enter {
+  animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Hover elevation for cards and interactive surfaces */
+.elevate-on-hover {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.elevate-on-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* Progress bar fill */
+.progress-fill {
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Respect user motion preference everywhere */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

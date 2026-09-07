@@ -1,0 +1,3 @@
+import React from 'react';
+import { FlaskConical, Plus } from 'lucide-react';
+export default function StudyCreationView({ onOpenNewStudyModal }) { return <div className="p-6 max-w-4xl mx-auto"><div className="bg-walnut-900 text-white rounded-2xl p-8"><div className="flex items-center gap-3"><FlaskConical className="w-7 h-7 text-copper-300" /><div><h1 className="text-2xl font-bold">Study Creation</h1><p className="text-sm text-stone-300 mt-1">Create and configure a new clinical trial protocol.</p></div></div><button onClick={onOpenNewStudyModal} className="mt-6 px-4 py-3 rounded-lg bg-copper-600 text-white text-xs font-bold flex items-center gap-2"><Plus className="w-4 h-4" />Open study creation form</button></div></div>; }
