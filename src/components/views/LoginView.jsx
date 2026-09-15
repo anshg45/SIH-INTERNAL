@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { login } from "../../api";
 import {
   ShieldCheck,
   Users,
@@ -16,6 +17,8 @@ import {
   AlertCircle,
   Languages,
 } from "lucide-react";
+import { setLanguage } from "../../i18n";
+import { PATIENT_ACCOUNTS } from "../../data/patientAccounts";
 
 const mockUsers = [
   // Principal Investigator
@@ -121,10 +124,50 @@ const translations = {
     emailPlaceholder: "name@aiia.gov.in",
     passwordPlaceholder: "अपना पासवर्ड दर्ज करें",
   },
+  ta: {
+    langLabel: "தமிழ்",
+    govLine1: "இந்திய அரசு",
+    govLine2: "ஆயுஷ் அமைச்சகம்",
+    badge: "பாதுகாப்பான மருத்துவ ஆராய்ச்சி தளம்",
+    heroLine1: "ஒரே தளம்.",
+    heroLine2: "முழுமையான ஆய்வு நிர்வாகம்.",
+    heroSub:
+      "ஆயுர்வேத மருத்துவ ஆய்வுகள், பங்கேற்பாளர்கள், நெறிமுறைகள், ஒழுங்குமுறை இணக்கம், மருந்து பாதுகாப்பு மற்றும் மருத்துவத் தரவை நிர்வகிக்கும் ஒருங்கிணைந்த டிஜிட்டல் தளம்.",
+    workflow: [
+      { title: "ஆய்வுகள்", description: "ஆய்வு தொகுப்பு" },
+      { title: "பங்கேற்பாளர்கள்", description: "நோயாளர் மேலாண்மை" },
+      { title: "நெறிமுறைகள்", description: "IEC நிர்வாகம்" },
+      { title: "பாதுகாப்பு", description: "மருந்து பாதுகாப்பு" },
+    ],
+    secureLogin: "பாதுகாப்பான உள்நுழைவு",
+    welcomeBack: "மீண்டும் வரவேற்கிறோம்",
+    officialEmail: "அதிகாரப்பூர்வ மின்னஞ்சல்",
+    password: "கடவுச்சொல்",
+    rememberMe: "என்னை நினைவில் வைத்திருங்கள்",
+    forgotPassword: "கடவுச்சொல் மறந்துவிட்டதா?",
+    launchButton: "மருத்துவ பணியிடத்தைத் தொடங்கு",
+    secureAccess: "பாதுகாப்பான அணுகல் • GCP இணக்கமான நிர்வாகம்",
+    fhir: "FHIR R4",
+    fhirSub: "ஒருங்கிணைந்த தரவு",
+    cdisc: "CDISC SDTM",
+    cdiscSub: "ஆராய்ச்சி தரநிலைகள்",
+    audit: "தணிக்கைக்குத் தயார்",
+    auditSub: "முழுமையான தடமறிதல்",
+    footerName: "AIIA மருத்துவ ஆய்வு மேலாண்மை அமைப்பு",
+    gcpCompliant: "GCP இணக்கம்",
+    invalidCreds:
+      "மின்னஞ்சல் அல்லது கடவுச்சொல் தவறாக உள்ளது. உங்கள் விவரங்களைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+    emailPlaceholder: "name@aiia.gov.in",
+    passwordPlaceholder: "உங்கள் கடவுச்சொல்லை உள்ளிடவும்",
+  },
 };
 
 export default function LoginView({ onLogin }) {
-  const [lang, setLang] = useState("en");
+  const [lang, setLangState] = useState(() => localStorage.getItem("ctms_language") || "en");
+  const setLang = (nextLanguage) => {
+    setLangState(nextLanguage);
+    setLanguage(nextLanguage);
+  };
   const t = translations[lang];
 
   const [email, setEmail] = useState("");
@@ -132,29 +175,36 @@ export default function LoginView({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [loginMode, setLoginMode] = useState("staff");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const matchedUser = mockUsers.find(
-      (u) =>
-        u.email.toLowerCase() === email.trim().toLowerCase() &&
-        u.password === password
-    );
-    if (matchedUser) {
+    setError("");
+    if (loginMode === "patient") {
+      const patient = PATIENT_ACCOUNTS.find((account) => account.aadhaar === email.trim() && account.password === password);
+      if (!patient) {
+        setError("Invalid patient Aadhaar number or password. Use the demo credentials shown below.");
+        return;
+      }
+      onLogin?.("patient", patient.name, `${patient.patientId}@patient.local`, patient);
+      return;
+    }
+    try {
+      const user = await login(email.trim(), password);
       setError("");
-           if (onLogin) onLogin(matchedUser.roleId, matchedUser.name, matchedUser.email);
-    } else {
+      if (onLogin) onLogin(user.role, user.name, user.email);
+    } catch {
       setError(t.invalidCreds);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#03130f] text-white overflow-hidden">
-      <div className="h-1 w-full bg-gradient-to-r from-amber-500 via-white to-emerald-600 bg-animated-flow" />
+    <div className="login-portal min-h-screen bg-[#f5f7fa] text-[#102a43] overflow-hidden">
+      <div className="h-1 w-full bg-gradient-to-r from-[#ff9933] via-white to-[#138808] bg-animated-flow" />
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-float-reverse" />
-        <div className="absolute bottom-0 left-1/3 w-96 h-72 bg-amber-500/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#138808]/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-[#1d4ed8]/10 rounded-full blur-3xl animate-float-reverse" />
+        <div className="absolute bottom-0 left-1/3 w-96 h-72 bg-[#ff9933]/10 rounded-full blur-3xl animate-float" />
         <div className="absolute inset-0 opacity-[0.04]">
           <div
             className="w-full h-full"
@@ -168,9 +218,9 @@ export default function LoginView({ onLogin }) {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        <header className="px-6 sm:px-10 lg:px-14 py-5 border-b border-white/10 bg-[#031d17]/80 backdrop-blur-xl">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <header className="login-portal-header px-6 sm:px-10 lg:px-14 py-5 border-b border-white/10 bg-[#12324e]/90 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto flex min-w-0 items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-4">
               <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1.5 shrink-0 overflow-hidden shadow-lg shadow-emerald-950/30 border border-white/70">
                 <img
                   src="/images/ministry-of-ayush-logo.png"
@@ -178,19 +228,19 @@ export default function LoginView({ onLogin }) {
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold tracking-[0.25em] text-gradient-emerald drop-shadow-sm animate-gradient-text animate-fade-in-up">
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-2xl font-extrabold tracking-[0.12em] sm:tracking-[0.25em] text-gradient-emerald drop-shadow-sm animate-gradient-text animate-fade-in-up truncate">
                   AAYUR SAATHI
                 </h1>
-                <p className="text-emerald-200/70 text-xs sm:text-sm">
+                <p className="text-blue-100/70 text-xs sm:text-sm">
                   Clinical Trial Management System
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
               <div className="hidden sm:block text-right">
-                <p className="text-xs text-emerald-200/60">{t.govLine1}</p>
+                <p className="text-xs text-blue-100/60">{t.govLine1}</p>
                 <p className="text-sm font-medium text-white/90">{t.govLine2}</p>
               </div>
               <div className="hidden sm:flex w-10 h-10 rounded-lg bg-white/10 border border-white/10 items-center justify-center">
@@ -198,14 +248,14 @@ export default function LoginView({ onLogin }) {
               </div>
 
               <div className="flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/10 p-1">
-                <Languages className="w-3.5 h-3.5 text-white/40 ml-1.5" />
+                <Languages className="hidden sm:block w-3.5 h-3.5 text-white/40 ml-1.5" />
                 <button
                   type="button"
                   onClick={() => setLang("en")}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                    className={`px-1.5 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold transition-colors ${
                     lang === "en"
-                      ? "bg-emerald-600 text-white"
-                      : "text-white/50 hover:text-white/80"
+                      ? "bg-[#138808] text-black"
+                      : "text-black hover:text-black"
                   }`}
                 >
                   EN
@@ -213,13 +263,24 @@ export default function LoginView({ onLogin }) {
                 <button
                   type="button"
                   onClick={() => setLang("hi")}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                    className={`px-1.5 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold transition-colors ${
                     lang === "hi"
-                      ? "bg-emerald-600 text-white"
-                      : "text-white/50 hover:text-white/80"
+                      ? "bg-[#138808] text-black"
+                      : "text-black hover:text-black"
                   }`}
                 >
                   हिं
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLang("ta")}
+                    className={`px-1.5 sm:px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-semibold transition-colors ${
+                    lang === "ta"
+                      ? "bg-[#138808] text-black"
+                      : "text-black hover:text-black"
+                  }`}
+                >
+                  தமிழ்
                 </button>
               </div>
             </div>
@@ -228,15 +289,15 @@ export default function LoginView({ onLogin }) {
 
         <main className="flex-1 px-5 sm:px-8 lg:px-14 py-8 lg:py-12">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-10 animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-400/10 border border-emerald-300/20 text-emerald-200 text-xs font-medium mb-5">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <div className="login-portal-intro text-center mb-10 animate-fade-in-up">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#138808]/10 border border-[#138808]/30 text-green-100 text-xs font-medium mb-5">
+                <span className="w-2 h-2 rounded-full bg-[#ff9933] animate-pulse" />
                 {t.badge}
               </div>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
                 {t.heroLine1}
-                <span className="block bg-gradient-to-r from-emerald-300 via-teal-300 to-amber-300 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-[#ff9933] via-white to-[#7bd2a3] bg-clip-text text-transparent">
                   {t.heroLine2}
                 </span>
               </h2>
@@ -246,7 +307,7 @@ export default function LoginView({ onLogin }) {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
+            <div className="login-portal-workflow grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
               {t.workflow.map((item, i) => {
                 const Icon = workflowIcons[i];
                 return (
@@ -275,7 +336,7 @@ export default function LoginView({ onLogin }) {
                   <div className="rounded-3xl border border-white/10 bg-white/[0.055] backdrop-blur-xl shadow-2xl shadow-black/20 overflow-hidden animate-shimmer">
                     <div className="p-6 sm:p-7 border-b border-white/10">
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg glow-emerald">
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#ff9933] to-[#1d4ed8] flex items-center justify-center shadow-lg">
                           <Lock className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -285,6 +346,11 @@ export default function LoginView({ onLogin }) {
                           <h3 className="text-xl font-bold mt-0.5">{t.welcomeBack}</h3>
                         </div>
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1 mx-6 sm:mx-7 mt-5 p-1 rounded-xl bg-black/20 border border-white/10">
+                      <button type="button" onClick={() => { setLoginMode("staff"); setEmail(""); setPassword(""); setError(""); }} className={`py-2 rounded-lg text-xs font-bold transition-colors ${loginMode === "staff" ? "bg-white text-slate-900" : "text-white/50 hover:text-white"}`}>Staff / Admin</button>
+                      <button type="button" onClick={() => { setLoginMode("patient"); setEmail(""); setPassword(""); setError(""); }} className={`py-2 rounded-lg text-xs font-bold transition-colors ${loginMode === "patient" ? "bg-emerald-500 text-white" : "text-white/50 hover:text-white"}`}>Login as Patient</button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="p-6 sm:p-7">
@@ -297,23 +363,24 @@ export default function LoginView({ onLogin }) {
 
                       <div className="mb-4">
                         <label className="block text-xs font-medium text-white/60 mb-2">
-                          {t.officialEmail}
+                          {loginMode === "patient" ? "Aadhaar number" : t.officialEmail}
                         </label>
                         <div className="relative">
                           <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                           <input
-                            type="email"
+                            type={loginMode === "patient" ? "text" : "email"}
+                            inputMode={loginMode === "patient" ? "numeric" : "email"}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder={t.emailPlaceholder}
-                            className="w-full h-12 rounded-xl bg-black/20 border border-white/10 pl-10 pr-4 text-sm text-white placeholder:text-white/25 outline-none focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/10 transition-all"
+                            placeholder={loginMode === "patient" ? "12-digit demo Aadhaar number" : t.emailPlaceholder}
+                            className="w-full h-12 rounded-xl bg-black/20 border border-white/10 pl-10 pr-4 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#ff9933]/60 focus:ring-2 focus:ring-[#ff9933]/10 transition-all"
                           />
                         </div>
                       </div>
 
                       <div className="mb-4">
                         <label className="block text-xs font-medium text-white/60 mb-2">
-                          {t.password}
+                          {loginMode === "patient" ? "Patient password" : t.password}
                         </label>
                         <div className="relative">
                           <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
@@ -321,8 +388,8 @@ export default function LoginView({ onLogin }) {
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder={t.passwordPlaceholder}
-                            className="w-full h-12 rounded-xl bg-black/20 border border-white/10 pl-10 pr-12 text-sm text-white placeholder:text-white/25 outline-none focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/10 transition-all"
+                            placeholder={loginMode === "patient" ? "Enter patient password" : t.passwordPlaceholder}
+                            className="w-full h-12 rounded-xl bg-black/20 border border-white/10 pl-10 pr-12 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#ff9933]/60 focus:ring-2 focus:ring-[#ff9933]/10 transition-all"
                           />
                           <button
                             type="button"
@@ -354,9 +421,9 @@ export default function LoginView({ onLogin }) {
 
                       <button
                         type="submit"
-                        className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] hover:glow-emerald"
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-[#ff9933] to-[#1d4ed8] hover:from-[#f28c22] hover:to-[#1e40af] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-950/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
                       >
-                        {t.launchButton}
+                        {loginMode === "patient" ? "Open My Health Portal" : t.launchButton}
                         <ArrowRight className="w-4 h-4" />
                       </button>
 
@@ -364,13 +431,14 @@ export default function LoginView({ onLogin }) {
                         <Lock className="w-3.5 h-3.5 text-emerald-300/70" />
                         <p className="text-[10px] text-white/30">{t.secureAccess}</p>
                       </div>
+                      {loginMode === "patient" && <p className="mt-3 text-center text-[10px] text-emerald-200/60">Demo: Aadhaar `900000000001` to `900000000010` · Password: `Patient@123`</p>}
                     </form>
                   </div>
                 </section>
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-3 mt-8">
+            <div className="login-portal-features grid sm:grid-cols-3 gap-3 mt-8">
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.025] border border-white/5 hover:bg-white/[0.05] hover:border-emerald-300/20 transition-all duration-300">
                 <Database className="w-5 h-5 text-emerald-300/70" />
                 <div>

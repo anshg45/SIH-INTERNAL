@@ -30,47 +30,10 @@ export default function NewStudyModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newTrial = {
-      id: formData.code,
-      code: formData.code,
-      title: formData.title || "Clinical Evaluation of Novel Ayurvedic Formulation",
-      shortTitle: formData.shortTitle || formData.title.slice(0, 45),
-      phase: formData.phase,
-      domain: formData.domain,
-      domainBadge: formData.domain.includes("Polyherbal") ? "Polyherbal" : "Rasayana",
-      status: formData.isCtriPending ? "Enrollment Locked" : "Recruiting",
-      statusVariant: formData.isCtriPending ? "locked" : "recruiting",
-      ctriNumber: formData.ctriNumber || (formData.isCtriPending ? "Pending CTRI Verification" : "CTRI/2026/01/099881"),
-      ctriStatus: formData.isCtriPending ? "Pending CTRI Verification" : "Verified & Registered",
-      ctriLocked: formData.isCtriPending,
-      ctriLockReason: formData.isCtriPending ? "Statutory hard gate active: CTRI registration verification pending under Rule 75 of New Drugs and Clinical Trials Rules 2019." : null,
-      iecClearance: formData.iecClearance,
-      iecApprovalDate: new Date().toISOString().split('T')[0],
-      pi: formData.pi,
-      piId: "pi",
-      crc: "Dr. Priya Nair",
-      site: formData.site,
-      targetEnrollment: Number(formData.targetEnrollment),
-      currentEnrollment: 0,
-      screeningCount: 0,
-      completionRate: 0,
-      startDate: new Date().toISOString().split('T')[0],
-      targetEndDate: "2027-12-31",
-      formulation: formData.formulation || "Standardized aqueous botanical extract",
-      primaryEndpoint: "Clinically significant improvement in primary disease scoring scale",
-      secondaryEndpoints: ["Safety & tolerability profile", "Ayurvedic Dosha and Agni biomarkers"],
-      visitsCount: 6,
-      openDeviations: 0,
-      safetyEventsCount: 0,
-      lastAuditBlock: 124590,
-      sdtmReady: false,
-      description: formData.title
-    };
-
-    onCreateStudy(newTrial);
+    await onCreateStudy(formData);
     onClose();
   };
 

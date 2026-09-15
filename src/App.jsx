@@ -18,6 +18,7 @@ import AeSummaryView from './components/views/AeSummaryView';
 import DsmbFeedView from './components/views/DsmbFeedView';
 import AdminSettingsView from './components/views/AdminSettingsView';
 import StudyCreationView from './components/views/StudyCreationView';
+import PatientPortalView from './components/views/PatientPortalView';
 
 import NotificationDrawer from './components/common/NotificationDrawer';
 import GlobalSearchModal from './components/common/GlobalSearchModal';
@@ -27,12 +28,40 @@ import NewStudyModal from './components/modals/NewStudyModal';
 
 import { CLINICAL_TRIALS, PATIENTS_REGISTRY, PHARMACOVIGILANCE_EVENTS, ROLES } from './data/mockData';
 import { canAccessView, ROLE_NAV_ITEMS } from './data/roleDashboardConfig';
+import { createStudy, getCurrentUser, getPortfolio, getStoredToken, getStudies, logout as clearSession } from './api';
+import { getLanguage } from './i18n';
+
+const FRONTEND_ROLE_BY_BACKEND_ROLE = {
+  pi: 'pi',
+  coordinator: 'crc',
+  monitor: 'cra',
+  ethics_committee: 'iec',
+  pharmacovigilance: 'pv',
+  admin: 'admin',
+  regulator: 'regulator',
+};
+
+const toUiStudy = (study) => ({
+  ...study,
+  code: study.title,
+  shortTitle: study.title,
+  statusVariant: study.status === 'active' ? 'recruiting' : 'locked',
+  ctriNumber: study.ctri_registration_number || 'Pending CTRI Verification',
+  currentEnrollment: study.enrolled_count,
+  targetEnrollment: study.enrollment_target,
+  completionRate: study.enrollment_percent,
+  startDate: study.start_date,
+  targetEndDate: study.end_date,
+  site: study.site_id || 'AIIA Hospital, New Delhi',
+});
 
 export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentRole, setCurrentRole] = useState("admin");
   const [currentUserName, setCurrentUserName] = useState(null);
   const [currentUserEmail, setCurrentUserEmail] = useState(null);
+  const [currentPatient, setCurrentPatient] = useState(null);
+  const [language, setLanguage] = useState(getLanguage());
   const [activeView, setActiveView] = useState("dashboard");
   const [selectedTrialId, setSelectedTrialId] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -47,11 +76,39 @@ export default function App() {
 
   // Dynamic clinical trial lists
   const [trialsList, setTrialsList] = useState(CLINICAL_TRIALS);
+  const [registeredProtocols, setRegisteredProtocols] = useState([]);
+  const [protocolWorkflowStatuses, setProtocolWorkflowStatuses] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ctms_protocol_workflow_statuses') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [livePortfolio, setLivePortfolio] = useState(null);
   const [patientsList, setPatientsList] = useState(PATIENTS_REGISTRY);
   const [safetyList, setSafetyList] = useState(PHARMACOVIGILANCE_EVENTS);
 
   // Toast feedback state
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!getStoredToken()) return;
+
+    Promise.all([getCurrentUser(), getStudies(), getPortfolio()])
+      .then(([user, studies, portfolio]) => {
+        setCurrentRole(FRONTEND_ROLE_BY_BACKEND_ROLE[user.role] || 'admin');
+        setCurrentUserName(user.name);
+        setCurrentUserEmail(user.email);
+        setTrialsList(studies.map(toUiStudy));
+        setLivePortfolio(portfolio);
+        setIsAuthenticated(true);
+      })
+      .catch(() => clearSession());
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('ctms_protocol_workflow_statuses', JSON.stringify(protocolWorkflowStatuses));
+  }, [protocolWorkflowStatuses]);
 
   useEffect(() => {
     if (!canAccessView(currentRole, activeView)) {
@@ -79,18 +136,23 @@ export default function App() {
   }, []);
 
   // Handlers
-    const handleLogin = (roleId, userName, userEmail) => {
-    setCurrentRole(roleId);
+    const handleLogin = (roleId, userName, userEmail, patientRecord = null) => {
+      const frontendRole = FRONTEND_ROLE_BY_BACKEND_ROLE[roleId] || roleId;
+      setCurrentRole(frontendRole);
     setCurrentUserName(userName || null);
     setCurrentUserEmail(userEmail || null);
+    setCurrentPatient(patientRecord);
     setIsAuthenticated(true);
     setActiveView('dashboard');
-    const roleObj = ROLES.find(r => r.id === roleId);
+    getPortfolio().then(setLivePortfolio).catch(() => setLivePortfolio(null));
+    const roleObj = ROLES.find(r => r.id === frontendRole);
     showToast(`Logged in as ${roleObj?.name} (${userName || roleObj?.holder})`, "info");
   };
 
   const handleLogout = () => {
+    clearSession();
     setIsAuthenticated(false);
+    setCurrentPatient(null);
     showToast("Signed out from AIIA CTMS Portal", "info");
   };
 
@@ -134,14 +196,41 @@ export default function App() {
     showToast(`Expedited ${newSae.type} (${newSae.id}) logged. 3-Day CDSCO Statutory Countdown Initiated!`, "warning");
   };
 
-  const handleCreateStudy = (newStudy) => {
-    setTrialsList(prev => [newStudy, ...prev]);
-    showToast(`Trial protocol ${newStudy.code} onboarded. CTRI status: ${newStudy.ctriStatus}`);
+  const handleCreateStudy = async (studyForm) => {
+    const createdStudy = await createStudy({
+      title: studyForm.title,
+      phase: studyForm.phase,
+      sponsor: studyForm.sponsor || null,
+      ctri_registration_number: studyForm.isCtriPending ? null : studyForm.ctriNumber || null,
+      enrollment_target: Number(studyForm.targetEnrollment),
+      site_id: studyForm.site || null,
+      start_date: new Date().toISOString().split('T')[0],
+    });
+    setTrialsList(prev => [toUiStudy(createdStudy), ...prev]);
+    setRegisteredProtocols(prev => [{
+      ...studyForm,
+      id: createdStudy.id,
+      registeredAt: new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+      status: studyForm.isCtriPending ? 'CTRI verification pending' : 'CTRI verified',
+    }, ...prev]);
+    setProtocolWorkflowStatuses(prev => ({ ...prev, [createdStudy.id]: 'pending_iec' }));
+    showToast(`Trial protocol ${studyForm.code} onboarded successfully.`);
+  };
+
+  const handleAdvanceProtocol = (protocolId, nextStatus) => {
+    setProtocolWorkflowStatuses(prev => ({ ...prev, [protocolId]: nextStatus }));
+    setRegisteredProtocols(prev => prev.map(protocol => protocol.id === protocolId
+      ? { ...protocol, workflowStatus: nextStatus, status: nextStatus === 'site_activation' ? 'IEC approved' : protocol.status }
+      : protocol));
   };
 
   // If unauthenticated, show Login Portal
   if (!isAuthenticated) {
     return <LoginView onLogin={handleLogin} />;
+  }
+
+  if (currentRole === 'patient') {
+    return <PatientPortalView patient={currentPatient} onLogout={handleLogout} />;
   }
 
   return (
@@ -174,6 +263,7 @@ export default function App() {
         onLogout={handleLogout}
         urgentSaeCount={1}
         pendingIecCount={2}
+        language={language}
       />
 
       {/* Main Container Area with dynamic left margin for Sidebar */}
@@ -192,6 +282,8 @@ export default function App() {
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenNotifications={() => setIsNotificationsOpen(true)}
           unreadAlertCount={4}
+          language={language}
+          onLanguageChange={setLanguage}
         />
 
         {/* Dynamic Main Workspace Views */}
@@ -204,9 +296,14 @@ export default function App() {
               }}
               onNavigate={handleNavigate}
                             onOpenNewStudyModal={() => setIsNewStudyModalOpen(true)}
+                            trials={trialsList}
               currentRole={currentRole}
               currentUserName={currentUserName}
               currentUserEmail={currentUserEmail}
+              livePortfolio={livePortfolio}
+              registeredProtocols={registeredProtocols}
+              onAdvanceProtocol={handleAdvanceProtocol}
+              language={language}
             />
           )}
 
@@ -242,7 +339,7 @@ export default function App() {
           )}
 
           {activeView === 'ethics' && (
-            <EthicsView currentRole={currentRole} />
+            <EthicsView currentRole={currentRole} registeredProtocols={registeredProtocols} onAdvanceProtocol={handleAdvanceProtocol} />
           )}
 
           {activeView === 'patients' && (
@@ -276,7 +373,7 @@ export default function App() {
           {activeView === 'compliance' && <ComplianceView currentRole={currentRole} />}
           {activeView === 'ae-summary' && <AeSummaryView currentRole={currentRole} />}
           {activeView === 'dsmb-feed' && <DsmbFeedView currentRole={currentRole} />}
-          {activeView === 'admin-settings' && <AdminSettingsView currentRole={currentRole} />}
+          {activeView === 'admin-settings' && <AdminSettingsView currentRole={currentRole} registeredProtocols={registeredProtocols} studies={trialsList} workflowStatuses={protocolWorkflowStatuses} onAdvanceProtocol={handleAdvanceProtocol} />}
           {activeView === 'study-create' && <StudyCreationView onOpenNewStudyModal={() => setIsNewStudyModalOpen(true)} />}
           {activeView === 'reports' && <SimpleWorkspace title="Reports & Downloads" description="Role-scoped clinical reports and approved downloads." />}
           {activeView === 'documents' && <SimpleWorkspace title="Documents" description="Role-scoped protocol and study documents." />}

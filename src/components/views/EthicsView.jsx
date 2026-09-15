@@ -17,7 +17,7 @@ import ProtocolReviewModal from '../modals/ProtocolReviewModal';
 import { IEC_SUBMISSIONS, INSTITUTION_INFO } from '../../data/mockData';
 import { ROLE_TAB_CONFIG } from '../../data/roleDashboardConfig';
 
-export default function EthicsView({ currentRole }) {
+export default function EthicsView({ currentRole, registeredProtocols = [], onAdvanceProtocol }) {
   const [submissions, setSubmissions] = useState(IEC_SUBMISSIONS);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -81,6 +81,23 @@ export default function EthicsView({ currentRole }) {
           </button>
         ))}
       </div>
+
+      {registeredProtocols.filter((protocol) => protocol.status === 'CTRI verification pending' || protocol.workflowStatus === 'pending_iec').length > 0 && (
+        <div className="bg-white rounded-2xl border-2 border-amber-200 shadow-xs overflow-hidden">
+          <div className="p-5 border-b border-amber-200 bg-amber-50">
+            <h3 className="text-base font-bold text-amber-950">New Protocol Requests for IEC Review</h3>
+            <p className="text-xs text-amber-800 mt-1">Protocols registered by Admin/PI are waiting for institutional ethics approval.</p>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {registeredProtocols.filter((protocol) => protocol.status === 'CTRI verification pending' || protocol.workflowStatus === 'pending_iec').map((protocol) => (
+              <div key={protocol.id || protocol.code} className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div><div className="flex items-center gap-2"><span className="font-mono text-xs font-bold text-indigo-800">{protocol.code}</span><span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">pending_iec</span></div><h4 className="text-sm font-bold text-slate-900 mt-2">{protocol.title}</h4><p className="text-xs text-slate-500 mt-1">{protocol.phase} · {protocol.domain} · PI: {protocol.pi}</p></div>
+                <button disabled={currentRole !== 'iec'} onClick={() => onAdvanceProtocol(protocol.id, 'site_activation')} className="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-bold shrink-0">{currentRole === 'iec' ? 'Approve IEC Review' : 'IEC role required'}</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

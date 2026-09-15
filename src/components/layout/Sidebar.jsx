@@ -25,6 +25,7 @@ import {
 
 import { ROLES } from '../../data/mockData';
 import { ROLE_NAV_ITEMS } from '../../data/roleDashboardConfig';
+import { getTranslations } from '../../i18n';
 
 export default function Sidebar({
   activeView,
@@ -36,26 +37,30 @@ export default function Sidebar({
   onLogout,
   urgentSaeCount = 1,
   pendingIecCount = 2
+  , language = 'en'
 }) {
   const currentRoleObj =
     ROLES.find((r) => r.id === currentRole) || ROLES[0];
   const displayName = currentUserName || currentRoleObj.holder;
+  const t = getTranslations(language);
 
   const allowedViews = new Set(ROLE_NAV_ITEMS[currentRole] || ROLE_NAV_ITEMS.admin);
 
   const itemCatalog = {
-    dashboard: { label: 'Dashboard', icon: LayoutDashboard },
-    studies: { label: 'Study Drill-down', icon: FlaskConical },
-    patients: { label: 'Patient Workspace', icon: Users },
+    dashboard: { label: t.dashboard, icon: LayoutDashboard },
+    studies: { label: t.studies, icon: FlaskConical },
+    patients: { label: t.patients, icon: Users },
     'data-queries': { label: 'Data Query Inbox', icon: Database },
     compliance: { label: 'Compliance Workspace', icon: ShieldCheck },
-    ethics: { label: 'Pending Review Queue', icon: FileCheck2, badge: pendingIecCount ? `${pendingIecCount} Pending` : null },
+    ethics: { label: t.ethics, icon: FileCheck2, badge: pendingIecCount ? `${pendingIecCount} Pending` : null },
     pv: { label: 'AE/SAE Inbox', icon: ShieldAlert, badge: urgentSaeCount ? `${urgentSaeCount} Urgent` : null },
     'ae-summary': { label: 'AE Summary Dashboard', icon: FileBarChart2 },
     'dsmb-feed': { label: 'DSMB Signal Feed', icon: Activity },
     'study-create': { label: 'Study Creation', icon: FlaskConical },
     'admin-settings': { label: 'Admin Settings', icon: Settings },
-    audit: { label: 'Audit Trail', icon: Blocks, badge: 'Verified' },
+    audit: { label: t.audit, icon: Blocks, badge: 'Verified' },
+    fhir: { label: t.fhir, icon: Activity, badge: t.live },
+    regulator: { label: t.regulator, icon: Scale },
     reports: { label: 'Reports & Downloads', icon: BarChart3 },
     documents: { label: 'Documents', icon: FileText },
   };

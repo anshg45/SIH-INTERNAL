@@ -31,6 +31,7 @@ import {
   INSTITUTION_INFO
 } from '../../data/mockData';
 import { getPersonalizedDashboard } from '../../data/roleDashboardConfig';
+import { getTranslations } from '../../i18n';
 
 export default function DashboardView({
   onSelectTrial,
@@ -38,7 +39,12 @@ export default function DashboardView({
   onOpenNewStudyModal,
   currentRole,
   currentUserName,
-  currentUserEmail
+  currentUserEmail,
+  trials = CLINICAL_TRIALS,
+  livePortfolio,
+  registeredProtocols = [],
+  onAdvanceProtocol,
+  language = 'en'
 }) {
   const [phaseFilter, setPhaseFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,10 +52,12 @@ export default function DashboardView({
   const [copiedRoot, setCopiedRoot] = useState(false);
   const isRegulator = currentRole === 'regulator';
   const roleConfig = getPersonalizedDashboard(currentRole, currentUserName, currentUserEmail);
+  const t = getTranslations(language);
+  const roleTitle = t.roleTitles?.[currentRole] || roleConfig.title;
 
   const assignedCodes = new Set((roleConfig.assignedTrials || []).map((trial) => trial.code));
   const isScopedRole = currentRole === 'crc' || currentRole === 'cra';
-  const filteredTrials = CLINICAL_TRIALS.filter(t => {
+  const filteredTrials = trials.filter(t => {
     const matchesAssignment = !isScopedRole || assignedCodes.has(t.code);
     const matchesPhase = phaseFilter === "ALL" || t.phase.includes(phaseFilter);
     const matchesQuery = t.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,6 +66,8 @@ export default function DashboardView({
                          t.ctriNumber.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesAssignment && matchesPhase && matchesQuery;
   });
+  const liveKpis = livePortfolio?.kpis;
+  const liveAlerts = livePortfolio?.alerts || [];
 
   const handleCopyMerkleRoot = () => {
     navigator.clipboard.writeText(INSTITUTION_INFO.currentMerkleRoot);
@@ -93,7 +103,7 @@ export default function DashboardView({
                 {roleConfig.badge}
               </span>
               <span className="px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-walnut-800 text-stone-300 border border-walnut-700">
-                {currentRole.toUpperCase()} ACCESS
+                {currentRole.toUpperCase()} {t.access}
               </span>
               <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-stone-400 font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-sage-400 animate-status-breathe" />
@@ -102,11 +112,15 @@ export default function DashboardView({
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
-              {roleConfig.welcomeName.split(' ').slice(0, 2).join(' ')} — <span className="text-gold-300">{roleConfig.title}</span>
+              {roleConfig.welcomeName.split(' ').slice(0, 2).join(' ')} — <span className="text-gold-300">{roleTitle}</span>
             </h1>
 
             <p className="text-sm text-stone-300 leading-relaxed max-w-xl">
-              {roleConfig.summary}
+              {currentRole === 'admin' && language === 'hi'
+                ? 'आप पूरे संस्थान के क्लिनिकल रिसर्च पोर्टफोलियो, सुरक्षा स्थिति, सिस्टम अखंडता और संचालन की निगरानी कर रहे हैं।'
+                : currentRole === 'admin' && language === 'ta'
+                  ? 'நிறுவனத்தின் மருத்துவ ஆராய்ச்சி தொகுப்பு, பாதுகாப்பு நிலை, அமைப்பு ஒருமைப்பாடு மற்றும் செயல்பாடுகளை நீங்கள் நிர்வகிக்கிறீர்கள்.'
+                  : roleConfig.summary}
             </p>
 
             <div className="pt-1 flex items-center gap-2 flex-wrap text-[11px] text-stone-300">
@@ -124,11 +138,36 @@ export default function DashboardView({
               className="shrink-0 px-5 py-2.5 rounded-lg bg-copper-600 hover:bg-copper-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span>Open Workflow</span>
+              <span>{t.openWorkflow}</span>
             </button>
           )}
         </div>
       </motion.div>
+
+      {currentRole === 'crc' && registeredProtocols.filter((protocol) => protocol.workflowStatus === 'site_activation').length > 0 && (
+        <div className="rounded-2xl border-2 border-copper-200 bg-white overflow-hidden">
+          <div className="p-5 border-b border-copper-200 bg-copper-50"><h3 className="text-base font-bold text-ink-900">Protocol Requests for Coordinator</h3><p className="text-xs text-ink-600 mt-1">Site activation is complete. Start patient screening and gated enrollment for the approved protocol.</p></div>
+          <div className="divide-y divide-stone-100">{registeredProtocols.filter((protocol) => protocol.workflowStatus === 'site_activation').map((protocol) => <div key={protocol.id} className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"><div><span className="font-mono text-xs font-bold text-copper-800">{protocol.code}</span><h4 className="text-sm font-bold text-ink-900 mt-1">{protocol.title}</h4><p className="text-xs text-ink-500 mt-1">Status: site_activation · Ready for coordinator action</p></div><button onClick={() => onAdvanceProtocol(protocol.id, 'actively_enrolling')} className="px-4 py-2 rounded-lg bg-copper-700 hover:bg-copper-800 text-white text-xs font-bold shrink-0">Start enrollment</button></div>)}</div>
+        </div>
+      )}
+
+      {liveKpis && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            [language === 'hi' ? 'सक्रिय अध्ययन' : language === 'ta' ? 'செயலில் உள்ள ஆய்வுகள்' : 'Active studies', liveKpis.active_studies],
+            [language === 'hi' ? 'नामांकन' : language === 'ta' ? 'சேர்க்கை' : 'Enrollment', `${liveKpis.enrollment_percent}%`],
+            ['CTRI ' + (language === 'hi' ? 'लंबित' : language === 'ta' ? 'நிலுவை' : 'pending'), liveKpis.ctri_pending],
+            ['IEC ' + (language === 'hi' ? 'लंबित' : language === 'ta' ? 'நிலுவை' : 'pending'), liveKpis.iec_pending],
+            [language === 'hi' ? 'ऑडिट इवेंट' : language === 'ta' ? 'தணிக்கை நிகழ்வுகள்' : 'Audit events', liveKpis.audit_events],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-xl border border-stone-200 bg-ivory-50 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">{label}</p>
+              <p className="mt-1 text-xl font-bold text-ink-900">{value}</p>
+              <p className="text-[10px] text-sage-700">{t.liveFromDatabase}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ===================================================================
           ROLE-RELEVANT SUMMARY
@@ -139,13 +178,19 @@ export default function DashboardView({
         <SpotlightCard>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-400">Action required</p>
-              <h3 className="text-base font-bold text-ink-900">Priority queue</h3>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-400">{t.actionRequired}</p>
+              <h3 className="text-base font-bold text-ink-900">{t.priorityQueue}</h3>
             </div>
-            <span className="rounded-full bg-crimson-50 text-crimson-700 border border-crimson-200 px-2 py-1 text-[10px] font-bold">{roleConfig.alerts.length} items</span>
+            <span className="rounded-full bg-crimson-50 text-crimson-700 border border-crimson-200 px-2 py-1 text-[10px] font-bold">{liveAlerts.length || roleConfig.alerts.length} {t.items}</span>
           </div>
           <div className="space-y-3">
-            {roleConfig.alerts.map((alert) => {
+            {(liveAlerts.length ? liveAlerts.map((alert) => ({
+              title: alert.type,
+              detail: alert.message,
+              severity: alert.severity,
+              action: 'Open workflow',
+              icon: alert.severity === 'high' ? AlertOctagon : ShieldCheck,
+            })) : roleConfig.alerts).map((alert) => {
               const Icon = alert.icon;
               return (
                 <div key={alert.title} className="flex gap-3 items-start rounded-xl border border-stone-200 bg-ivory-100 p-3">
@@ -169,8 +214,8 @@ export default function DashboardView({
         <SpotlightCard>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-400">Notifications</p>
-              <h3 className="text-base font-bold text-ink-900">Recent updates</h3>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-ink-400">{t.notifications}</p>
+              <h3 className="text-base font-bold text-ink-900">{t.recentUpdates}</h3>
             </div>
             <span className="rounded-full bg-sage-50 text-sage-700 border border-sage-200 px-2 py-1 text-[10px] font-bold">Live</span>
           </div>

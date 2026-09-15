@@ -478,8 +478,8 @@ export const ROLE_NAV_ITEMS = {
   cra: ['dashboard', 'compliance', 'data-queries'],
   iec: ['ethics', 'pv'],
   pv: ['pv', 'ae-summary', 'dsmb-feed'],
-  admin: ['dashboard', 'study-create', 'admin-settings', 'audit'],
-  regulator: ['dashboard', 'studies', 'audit'],
+  admin: ['dashboard', 'study-create', 'admin-settings', 'audit', 'fhir', 'regulator'],
+  regulator: ['dashboard', 'studies', 'regulator', 'audit', 'fhir'],
 };
 
 export const ROLE_VIEW_ACCESS = ROLE_NAV_ITEMS;

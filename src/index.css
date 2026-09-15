@@ -10,53 +10,53 @@
   --font-sans: 'Inter', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Walnut — primary institutional brown */
-  --color-walnut-50: #F5F1EC;
-  --color-walnut-100: #EAE1D7;
-  --color-walnut-200: #D6C4B2;
-  --color-walnut-300: #BFA48A;
-  --color-walnut-400: #9C7A5C;
-  --color-walnut-500: #7A5B41;
-  --color-walnut-600: #5A3E32;
-  --color-walnut-700: #4A3129;
-  --color-walnut-800: #3A2620;
-  --color-walnut-900: #2E1E19;
+  /* Navy — Government of India institutional chrome */
+  --color-walnut-50: #eef4fb;
+  --color-walnut-100: #dbe8f5;
+  --color-walnut-200: #b7cde2;
+  --color-walnut-300: #8eacc8;
+  --color-walnut-400: #6389ad;
+  --color-walnut-500: #416b92;
+  --color-walnut-600: #285274;
+  --color-walnut-700: #193f5f;
+  --color-walnut-800: #12324e;
+  --color-walnut-900: #09243b;
 
-  /* Copper — secondary accent */
-  --color-copper-50: #FBF3EC;
-  --color-copper-100: #F3E1D0;
-  --color-copper-200: #E4C2A3;
-  --color-copper-300: #D2A57C;
-  --color-copper-400: #BD8760;
-  --color-copper-500: #A56A43;
-  --color-copper-600: #8F5736;
-  --color-copper-700: #74452B;
-  --color-copper-800: #5C3722;
-  --color-copper-900: #472A1A;
+  /* Saffron — national accent and primary action */
+  --color-copper-50: #fff7ed;
+  --color-copper-100: #ffedd5;
+  --color-copper-200: #fed7aa;
+  --color-copper-300: #fdba74;
+  --color-copper-400: #fb923c;
+  --color-copper-500: #f97316;
+  --color-copper-600: #ea580c;
+  --color-copper-700: #c2410c;
+  --color-copper-800: #9a3412;
+  --color-copper-900: #7c2d12;
 
-  /* Gold — muted antique accent, used sparingly (active states, emphasis) */
-  --color-gold-50: #FBF6EC;
-  --color-gold-100: #F3E7CB;
-  --color-gold-200: #E4CE9C;
-  --color-gold-300: #D3B678;
-  --color-gold-400: #C0A066;
-  --color-gold-500: #B08D57;
-  --color-gold-600: #97753F;
-  --color-gold-700: #7A5E33;
-  --color-gold-800: #5F4A28;
-  --color-gold-900: #4A3A20;
+  /* Ashoka blue / official highlight */
+  --color-gold-50: #eff6ff;
+  --color-gold-100: #dbeafe;
+  --color-gold-200: #bfdbfe;
+  --color-gold-300: #93c5fd;
+  --color-gold-400: #60a5fa;
+  --color-gold-500: #3b82f6;
+  --color-gold-600: #2563eb;
+  --color-gold-700: #1d4ed8;
+  --color-gold-800: #1e40af;
+  --color-gold-900: #1e3a8a;
 
-  /* Sage — healthcare / nature secondary accent, doubles as "success" */
-  --color-sage-50: #F1F4F1;
-  --color-sage-100: #DEE6DE;
-  --color-sage-200: #BECCBE;
-  --color-sage-300: #9BB09C;
-  --color-sage-400: #789480;
-  --color-sage-500: #526B57;
-  --color-sage-600: #435A48;
-  --color-sage-700: #37493B;
-  --color-sage-800: #2C3A2F;
-  --color-sage-900: #232E25;
+  /* India green — healthcare / success accent */
+  --color-sage-50: #effcf5;
+  --color-sage-100: #d8f3e5;
+  --color-sage-200: #afe5c7;
+  --color-sage-300: #7bd2a3;
+  --color-sage-400: #45b97b;
+  --color-sage-500: #16864b;
+  --color-sage-600: #0f6b3b;
+  --color-sage-700: #0b5632;
+  --color-sage-800: #08452a;
+  --color-sage-900: #06351f;
 
   /* Amber — warning status only (distinct from the gold accent) */
   --color-amber-50: #FBF3E6;
@@ -83,22 +83,22 @@
   --color-crimson-900: #3F1A12;
 
   /* Ivory — background & surfaces */
-  --color-ivory-50: #FFFDF9;
-  --color-ivory-100: #F7F4EE;
-  --color-ivory-200: #F0EBE1;
-  --color-ivory-300: #E6DFD1;
+  --color-ivory-50: #ffffff;
+  --color-ivory-100: #f5f7fa;
+  --color-ivory-200: #e9eef5;
+  --color-ivory-300: #dce5ef;
 
   /* Stone — borders & neutral chrome */
-  --color-stone-100: #F3EFE8;
-  --color-stone-200: #DDD5CA;
-  --color-stone-300: #C9BFAF;
-  --color-stone-400: #ABA08D;
+  --color-stone-100: #f1f4f8;
+  --color-stone-200: #d8e0ea;
+  --color-stone-300: #bdc9d6;
+  --color-stone-400: #93a4b6;
 
   /* Ink — text */
-  --color-ink-400: #948A80;
-  --color-ink-600: #6F665F;
-  --color-ink-700: #524B44;
-  --color-ink-900: #2E2926;
+  --color-ink-400: #718096;
+  --color-ink-600: #4a5b70;
+  --color-ink-700: #30445a;
+  --color-ink-900: #102a43;
 
   --shadow-card: 0 1px 2px rgba(46, 41, 38, 0.04), 0 1px 1px rgba(46, 41, 38, 0.03);
   --shadow-card-hover: 0 6px 20px -6px rgba(46, 41, 38, 0.14), 0 2px 6px -2px rgba(46, 41, 38, 0.08);
@@ -151,6 +151,84 @@
     background: var(--color-gold-200);
     color: var(--color-walnut-900);
   }
+}
+
+/* Compact government portal login surface */
+.login-portal {
+  background: #f5f7fa !important;
+  color: #102a43 !important;
+}
+.login-portal > .h-1 {
+  background: linear-gradient(90deg, #ff9933 0 33%, #ffffff 33% 66%, #138808 66%) !important;
+}
+.login-portal-header {
+  background: #ffffff !important;
+  border-color: #d8e0ea !important;
+}
+.login-portal-header h1,
+.login-portal-header p,
+.login-portal-intro h2,
+.login-portal-intro p,
+.login-portal-features p,
+.login-portal footer p,
+.login-portal footer span {
+  color: #102a43 !important;
+}
+.login-portal-header .text-white\/90 {
+  color: #30445a !important;
+}
+.login-portal-intro {
+  margin-bottom: 2rem !important;
+}
+.login-portal-intro > .inline-flex,
+.login-portal-workflow,
+.login-portal-features {
+  display: none !important;
+}
+.login-portal-intro h2 {
+  font-size: 1.8rem !important;
+  line-height: 1.2 !important;
+}
+.login-portal-intro h2 span {
+  display: inline !important;
+  background: none !important;
+  color: #138808 !important;
+}
+.login-portal-intro p {
+  max-width: 34rem !important;
+  color: #718096 !important;
+}
+.login-portal main {
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+.login-portal main > div {
+  max-width: 42rem !important;
+}
+.login-portal .rounded-3xl {
+  background: #ffffff !important;
+  border: 1px solid #d8e0ea !important;
+  box-shadow: 0 10px 30px rgba(16, 42, 67, 0.08) !important;
+}
+.login-portal .rounded-3xl .border-b {
+  border-color: #e9eef5 !important;
+}
+.login-portal label,
+.login-portal .text-white\/60,
+.login-portal .text-white\/45,
+.login-portal .text-white\/30 {
+  color: #4a5b70 !important;
+}
+.login-portal input {
+  background: #ffffff !important;
+  color: #102a43 !important;
+  border-color: #bdc9d6 !important;
+}
+.login-portal input::placeholder {
+  color: #93a4b6 !important;
+}
+.login-portal footer {
+  border-color: #d8e0ea !important;
 }
 
 /* ==========================================================================

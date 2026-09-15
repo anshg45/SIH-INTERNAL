@@ -8,6 +8,7 @@ import {
   Check
 } from 'lucide-react';
 import { ROLES, CLINICAL_TRIALS } from '../../data/mockData';
+import { SUPPORTED_LANGUAGES, getTranslations, setLanguage } from '../../i18n';
 
 export default function Navbar({
   activeView,
@@ -17,13 +18,16 @@ export default function Navbar({
   onSwitchRole,
   onOpenSearch,
   onOpenNotifications,
-  unreadAlertCount = 4
+  unreadAlertCount = 4,
+  language = 'en',
+  onLanguageChange
 }) {
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const roleDropdownRef = useRef(null);
 
   const currentRoleObj = ROLES.find(r => r.id === currentRole) || ROLES[0];
   const currentRoleShortName = currentRoleObj.name.replace(/\s*\(.*?\)\s*/g, '').trim();
+  const t = getTranslations(language);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -37,14 +41,14 @@ export default function Navbar({
 
   const viewTitles = {
     dashboard: currentRoleShortName,
-    studies: "Clinical Trials & Protocol Workspace",
+    studies: t.studies,
     pv: "Pharmacovigilance Command Center (PvPI)",
-    ethics: "Institutional Ethics Committee (IEC) Review",
+    ethics: t.ethics,
     patients: "Clinical Trial Participant Registry & Prakriti",
-    audit: "Blockchain & Merkle Audit Integrity Engine",
-    fhir: "Ayush-FHIR R4 Interoperability Station",
-    cdisc: "CDISC SDTM Submission Studio",
-    regulator: "CDSCO / Ayush Regulatory Inspection Portal"
+    audit: t.audit,
+    fhir: t.fhir,
+    cdisc: "CDISC SDTM",
+    regulator: t.regulator
   };
 
   return (
@@ -84,6 +88,19 @@ export default function Navbar({
               ⌘K
             </kbd>
           </button>
+
+          <div className="hidden sm:flex items-center gap-0.5 rounded-lg border border-stone-200 bg-ivory-50 p-1" title={t.language}>
+            {SUPPORTED_LANGUAGES.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => { setLanguage(item.id); onLanguageChange?.(item.id); }}
+                className={`px-2 py-1 rounded text-[10px] font-bold ${language === item.id ? 'bg-sage-600 text-white' : 'text-ink-600 hover:bg-ivory-100'}`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
